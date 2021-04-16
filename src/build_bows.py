@@ -127,6 +127,14 @@ def run_all(data_dir, resource_dir):
 
             keywords[tradition] = list(keywords_dict.keys())
 
+
+            # output to a file
+            # In case of generic, the dataset is expected to be a TSBV file with structure: class \\t text"
+            tradition_file = re.sub('[^\w]+', '_', tradition.lower())
+
+            bow = pd.DataFrame({'word': keywords_dict.keys()})
+            bow.to_csv(f'{data_dir}/bow_{tradition_file}.tsv', sep='\t', index=False, header=False)
+
     key_df = pd.DataFrame({'tradition': list(keywords.keys()), 'keywords': list(keywords.values())})
     key_df['keywords'] = key_df['keywords'].apply(lambda x: json.dumps(x))
     key_df.to_sql('tradition_bow', if_exists='replace', con=conn, index=False)
@@ -149,4 +157,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"Args: {vars(args)}")
 
+    # data_dir = 'data'
+    # resource_dir = 'resources'
     run_all(**(vars(args)))
