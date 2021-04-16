@@ -9,16 +9,16 @@ Data from text:
 
 2. scrape the data:
    ```
-   python src/scrape_world_script.py --data_dir 'data' --resource_dir 'resources'
+   python src/scrape_world_script.py --data_dir '/content/drive/MyDrive/Colab Notebooks/FSDL/data' --resource_dir 'resources'
    ```
 3. build the BoW keyword list:
    - based on [this tutorial](https://github.com/kavgan/nlp-in-practice/tree/master/tf-idf)
    ```
-   python src/build_bows.py --data_dir 'data' --resource_dir 'resources'
+   python src/build_bows.py --data_dir '/content/drive/MyDrive/Colab Notebooks/FSDL/data' --resource_dir 'resources'
    ```
 4. train the descriminator:
    ```
-   python src/train_attribute_model.py --data_dir 'data' 
+   python src/train_attribute_model.py --data_dir '/content/drive/MyDrive/Colab Notebooks/FSDL/data' 
    ```
 
 

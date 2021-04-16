@@ -122,7 +122,7 @@ def run_all(data_dir, resource_dir):
     # file_name = files[19]  chapter
     # file_name = files[18]
     for i,file_name in enumerate(files):
-        print(f"i: {i}, file: {file_name}")
+        # print(f"i: {i}, file: {file_name}")
 
         file_name_extract = file_name.lower()
         chapter_number = re.findall('ws-(\d*)-\d*.htm', file_name_extract)
