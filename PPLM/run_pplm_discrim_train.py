@@ -324,7 +324,7 @@ def train_discriminator(
         save_model=False,
         cached=False,
         no_cuda=False,
-        output_fp='.'
+        output_fp='.',
 ):
     device = "cuda" if torch.cuda.is_available() and not no_cuda else "cpu"
     add_eos_token = pretrained_model.startswith("gpt2")
@@ -705,15 +705,15 @@ if __name__ == "__main__":
 
     train_discriminator(**(vars(args)))
 
-    train_discriminator(
-        dataset='generic',
-        dataset_fp=None,
-        pretrained_model="gpt2-medium",
-        epochs=10,
-        learning_rate=0.0001,
-        batch_size=64,
-        log_interval=10,
-        save_model=False,
-        cached=False,
-        no_cuda=False,
-        output_fp='.')
+    # train_discriminator(
+    #     dataset='generic',
+    #     dataset_fp=None,
+    #     pretrained_model="gpt2-medium",
+    #     epochs=10,
+    #     learning_rate=0.0001,
+    #     batch_size=64,
+    #     log_interval=10,
+    #     save_model=False,
+    #     cached=False,
+    #     no_cuda=False,
+    #     output_fp='.')
