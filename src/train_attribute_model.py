@@ -53,7 +53,7 @@ def run_all(data_dir):
 
     # go through each row - if it's > 100 length then split into multipe rows -
     df_discrim_output = df_discrim_output[['chapter_name_label', 'source_text']].copy()
-    df_discrim_output.to_csv(f'{data_dir}/discrim_train_data.tsv', sep='\t', index=False)
+    df_discrim_output.to_csv(f'{data_dir}/discrim_train_data.tsv', sep='\t', index=False, header=False)
 
     print(f'Finished writing to: {data_dir}/discrim_train_data.tsv')
     # test that outputted correctly
