@@ -22,6 +22,9 @@ from tqdm import tqdm, trange
 from transformers import BertTokenizer, BertModel
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
+import sys
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from PPLM.pplm_classification_head import ClassificationHead
 
 torch.manual_seed(0)

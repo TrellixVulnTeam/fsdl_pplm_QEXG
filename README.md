@@ -32,3 +32,7 @@ python PPLM/run_pplm.py -B '/content/drive/MyDrive/Colab Notebooks/FSDL/data/bow
 python PPLM/run_pplm.py -B 'data/bow_taoism.tsv'  --cond_text "In the beginning" --length 20 --gamma 1.0 --num_iterations 1 --num_samples 3 --stepsize 0.04 --kl_scale 0.01 --gm_scale 0.95 --sample  --verbosity 'regular'
 python PPLM/run_pplm.py -B 'data/bow_confucianism.tsv'  --cond_text "In the beginning" --length 20 --gamma 1.0 --num_iterations 1 --num_samples 3 --stepsize 0.04 --kl_scale 0.01 --gm_scale 0.95 --sample --verbosity 'regular'
 
+
+
+# Run Streamlit
+streamlit run wisdom.py

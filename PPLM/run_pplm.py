@@ -36,7 +36,12 @@ from transformers import GPT2Tokenizer
 from transformers.file_utils import cached_path
 from transformers.modeling_gpt2 import GPT2LMHeadModel
 
-from pplm_classification_head import ClassificationHead
+import os
+import sys
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from PPLM.pplm_classification_head import ClassificationHead
+
 
 PPLM_BOW = 1
 PPLM_DISCRIM = 2
@@ -373,6 +378,7 @@ def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) ->
             filepath = id_or_path
         with open(filepath, "r") as f:
             words = f.read().strip().split("\n")
+        print(f"Keywords (first 10): {words[:10]}")
         bow_indices.append(
             [tokenizer.encode(word.strip(),
                               add_prefix_space=True,
@@ -656,7 +662,7 @@ def generate_text_pplm(
             else torch.cat((output_so_far, last), dim=1)
         )
         if verbosity_level >= REGULAR:
-            print(tokenizer.decode(output_so_far.tolist()[0]))
+            print(tokenizer.decode(output_so_far.tolist()[0]).replace('<|endoftext|>', ''))
 
     return output_so_far, unpert_discrim_loss, loss_in_time
 

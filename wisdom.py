@@ -1,0 +1,136 @@
+"""
+Parts borrowed from
+https://towardsdatascience.com/rick-and-morty-story-generation-with-gpt2-using-transformers-and-streamlit-in-57-lines-of-code-8f81a8f92692
+"""
+
+import streamlit as st
+import pandas as pd
+
+from src.predictor import Predictor
+from src.generator import Generator
+
+############################################
+# Common paramas
+############################################
+
+bow_fps = {
+    'Custom (fill in below)': 'temp_bow.tsv',
+    'Buddhism': 'data/bow_buddhism.tsv',
+    'Hinduism': 'data/bow_hinduism.tsv',
+    'Christianity': 'data/bow_christianity.tsv',
+    'Judaism': 'data/bow_judaism.tsv',
+    'Confucianism': 'data/bow_confucianism.tsv',
+    'Sikhism': 'data/bow_sikhism.tsv',
+    'Taoism': 'data/bow_taoism.tsv',
+    'Jainism': 'data/bow_jainism.tsv',
+    'African Traditional Religions': 'data/bow_african_traditional_religions.tsv'
+}
+
+attr_labels = {
+    "None": None,
+    "Divine Law Truth and Cosmic Principle": "divine_law_truth_and_cosmic_principle",
+    "Eschatology and Messianic Hope":"eschatology_and_messianic_hope",
+    "Faith": "faith",
+    "Fall and Deviaiton": "fall_and_deviation",
+    "Good Government and Welfare of Society": "good_government_and_the_welfare_of_society",
+    "Life Beyond Death and Spiritual World": "life_beyond_death_and_the_spiritual_world",
+    "Live for Others": "live_for_others",
+    "Offering and Sacrifice": "offering_and_sacrifice",
+    "Responsibility and Predestination": "responsibility_and_predestination",
+    "Salvation Liberation and Enlightenment": "salvation_liberation_enlightenment",
+    "Self Cultivation and Spiritual Growth": "self_cultivation_and_spiritual_growth",
+    "Self Denial and Renunciation": "self_denial_and_renunciation",
+    "The Founder": "the_founder",
+    "The Human Condition": "the_human_condition",
+    "The Major Sins": "the_major_sins",
+    "The Purpose of Life for the Individual": "the_purpose_of_life_for_the_individual",
+    "The Purpose of Life in the Family and Society": "the_purpose_of_life_in_the_family_and_society",
+    "The Purpose of Life in the Natural World":"the_purpose_of_life_in_the_natural_world",
+    "Ultimate Reality": "ultimate_reality",
+    "Wisdom": "wisdom",
+    "Worship": "worship"}
+
+weights_path = 'data/weights/best_loss.pt'
+meta_path = 'data/weights/generic_classifier_head_meta.json'
+
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+def load_model(weights_path, meta_path):
+    pred = Predictor(weights_path, meta_path)
+    gen = Generator(weights_path, meta_path)
+
+    return pred, gen
+
+predictor, generator = load_model(weights_path, meta_path)
+print(f"Pred: {predictor}")
+print(f"Gen: {generator}")
+
+############################################
+# Sidebar panel
+############################################
+
+st.sidebar.markdown('## Configure Style and Content')
+bow = st.sidebar.selectbox('Choose Style', tuple(bow_fps.keys()))
+bow_custom = st.sidebar.text_input('Create Keyword List (comma separated)', 'Existential, Transcendent, Mystic')
+attr_model_label = st.sidebar.selectbox('Choose Topic', tuple(attr_labels.keys()))
+
+
+st.sidebar.markdown('## Generate Options')
+num_samples = st.sidebar.number_input("Number of samples:", value=1, min_value=1, max_value=10, step=1)
+length = st.sidebar.number_input("Length of output text:", value=25, min_value=10, max_value=100, step=1)
+stepsize = st.sidebar.number_input("Strength of conditioning:", value=0.04, min_value=0.01, max_value=.2, step=.01)
+num_iterations = st.sidebar.number_input("Number of iterations:", value=1, min_value=1, max_value=10, step=1)
+
+# if pick a custom BoW, then write a temporary file to pull that in
+if bow == 'Custom (fill in below)':
+    # write a file of keywords
+    # bow_custom = 'Existential, Transcendent, Mystic'
+    pd.DataFrame({'list': [x.strip() for x in bow_custom.split(',')]}).to_csv('temp_bow.tsv', header=False, index=False)
+
+bow_fp = bow_fps[bow]
+class_label = attr_labels[attr_model_label]
+
+print(f"bow_fp: {bow_fp}")
+print(f"class_label: {class_label}")
+
+############################################
+# Main panel
+############################################
+output_text_location = st.markdown('## Input:')
+context = st.text_area('What do you want hear more about?', '', height=200, max_chars=1000)
+gen_button = st.button('Generate new text')
+rec_button = st.button('Recommend similar passages')
+
+st.markdown('\n')
+st.markdown('## Output:')
+output_text_location = st.markdown('<- computing ->')
+
+st.markdown('\n')
+
+from utils import st_stdout
+
+
+if gen_button:
+    with st_stdout("code"):
+        output_text = generator.generate(
+            cond_text=context,
+            bag_of_words=bow_fp,
+            class_label=class_label,
+            num_samples=num_samples,
+            length=length,
+            stepsize=stepsize,
+            num_iterations=num_iterations
+        )
+
+    output_text_location.markdown(output_text)
+
+def get_key(val):
+    for key, value in attr_labels.items():
+        if val == value:
+            return key
+
+if rec_button:
+    label = predictor.predict(context)
+    source = bow
+    chapter = get_key(label)
+
+    print(f"Recommenation: source: {source}, label: {label}, chapter: {chapter}")
