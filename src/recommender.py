@@ -1,51 +1,78 @@
-import json
-import os
-import sys
-import torch
-import math
-import numpy as np
+"""
+Based on this:
+https://towardsdatascience.com/semantic-similarity-using-transformers-8f3cb5bf66d6
+"""
+from sentence_transformers import SentenceTransformer, util
+import sqlite3
+import pandas as pd
 
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from PPLM.run_pplm_discrim_train import load_discriminator, get_idx2class
+class Recommender():
 
+    def __init__(
+            self,
+            db_path,
+            pretrained_model='stsb-roberta-large'
+    ):
 
-class Predictor():
-
-    def __init__(self, weights_path, meta_path):
-        self.weights_path = weights_path
-        self.meta_path = meta_path
-        self.load_model()
         self.device = 'cpu'
+        self.db_path = db_path
+        self.pretrained_model = pretrained_model
+
+        self.load_model()
+        self.load_db()
 
     def load_model(self):
-        with open(self.meta_path, 'r', encoding="utf8") as f:
-            meta_params = json.load(f)
-        self.classes = list(meta_params['class_vocab'].keys())
-        self.model, self.meta_param = load_discriminator(self.weights_path, self.meta_path)
+        """
+        Load the SentenceTransformer model
+        base ond
+        :return:
+        """
+
+        print(f"SentenceTransformer for model {self.pretrained_model}")
+        self.model = SentenceTransformer(self.pretrained_model)
+
+    def load_db(self):
+        self.conn = sqlite3.connect(self.db_path)
+
+        df_chapter = pd.read_sql('select * from chapter', self.conn)
+        df_chapter.sort_values(['chapter_number'], inplace=True)
+
+        df_section = pd.read_sql('select * from section', self.conn)
+        df_section.sort_values(['chapter_number', 'section_number'], inplace=True)
+
+        df_text = pd.read_sql('select * from text', self.conn)
+        df_text.sort_values(['chapter_number', 'section_number', 'id'], inplace=True)
+
+        df_text = pd.merge(df_text, df_chapter.drop(['id'], axis=1), how='left', on='chapter_number')
+        self.df_text = pd.merge(df_text, df_section.drop(['id'], axis=1), how='left', on=['chapter_number', 'section_number'])
+
+        print(f"DB data text table loaded with shape {self.df_text.shape}")
 
 
     # predict method from run_pplm_discrim_train.py
-    def predict(self, input_sentence):
-        input_t = self.model.tokenizer.encode(input_sentence)
-        input_t = torch.tensor([input_t], dtype=torch.long, device=self.device)
+    def match(self, input_text, source_tradition, top_labels):
 
-        log_probs = self.model(input_t).data.cpu().numpy()
-        log_probs_list = log_probs.flatten().tolist()
-        probs_list = [math.exp(log_prob) for log_prob in log_probs_list]
-        print("Input sentence:", input_sentence)
-        print("Predictions:", ", ".join(
-            "{}: {:.4f}".format(c, prob) for c, prob in
-            zip(self.classes, probs_list)
-        ))
+        print(f"Finding closest passage for {input_text}")
 
-        max_value = max(probs_list)
-        max_index = probs_list.index(max_value)
-        label = self.classes[max_index]
+        # get the candidate sources
+        candidate_text = self.df_text[self.df_text['chapter_name'].isin(top_labels)
+                                 & self.df_text['source_tradition'].isin(source_tradition)]['source_text'].tolist()
 
-        print(f"Best prediction: {label}: {max_value}")
-        # to get top_n
-        # top_k_n = 5
-        # top_k = np.array([x.argsort()[-top_k_n:][::-1] for x in log_probs])
+        embedding1 = self.model.encode(input_text, convert_to_tensor=True)
+        embedding2 = self.model.encode(candidate_text, convert_to_tensor=True)
 
-        return label
+        # compute similarity scores of two embeddings
+        cosine_scores = util.pytorch_cos_sim(embedding1, embedding2)
+        max_match_text = ''
+        max_sim = 0.0
+        for i in range(len(input_text)):
+            for j in range(len(candidate_text)):
+                sim = cosine_scores[i][j].item()
+                if sim>max_sim:
+                    max_match_text = candidate_text[j]
+                    max_sim = sim
+                    # print(f"New best match: {sim}: {max_match_text}")
+
+        source = self.df_text[self.df_text['source_text'] == max_match_text]['source_location'].item()
+
+        return f"{source_tradition[0]}, {source}: {max_match_text}"

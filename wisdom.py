@@ -8,13 +8,14 @@ import pandas as pd
 
 from src.predictor import Predictor
 from src.generator import Generator
+from src.recommender import Recommender
 
 ############################################
 # Common paramas
 ############################################
 
 bow_fps = {
-    'Custom (fill in below)': 'temp_bow.tsv',
+    'Custom Keywords (fill in below)': 'temp_bow.tsv',
     'Buddhism': 'model/bow_buddhism.tsv',
     'Hinduism': 'model/bow_hinduism.tsv',
     'Christianity': 'model/bow_christianity.tsv',
@@ -52,15 +53,18 @@ attr_labels = {
 
 weights_path = 'model/weights/best_loss.pt'
 meta_path = 'model/weights/generic_classifier_head_meta.json'
+db_path = 'model/ws.db'
+
 
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
-def load_model(weights_path, meta_path):
+def load_model(weights_path, meta_path, db_path):
     pred = Predictor(weights_path, meta_path)
     gen = Generator(weights_path, meta_path)
+    rec = Recommender(db_path, 'stsb-roberta-large')
 
-    return pred, gen
+    return pred, gen, rec
 
-predictor, generator = load_model(weights_path, meta_path)
+predictor, generator, recommender = load_model(weights_path, meta_path, db_path)
 print(f"Pred: {predictor}")
 print(f"Gen: {generator}")
 
@@ -70,7 +74,7 @@ print(f"Gen: {generator}")
 
 st.sidebar.markdown('## Configure Style and Content')
 bow = st.sidebar.selectbox('Choose Style', tuple(bow_fps.keys()))
-bow_custom = st.sidebar.text_input('Create Keyword List (comma separated)', 'Existential, Transcendent, Mystic')
+bow_custom = st.sidebar.text_input('Custom Keywords (comma separated)', 'Love, Peace, Joy, God')
 attr_model_label = st.sidebar.selectbox('Choose Topic', tuple(attr_labels.keys()))
 
 
@@ -81,7 +85,7 @@ stepsize = st.sidebar.number_input("Strength of conditioning:", value=0.04, min_
 num_iterations = st.sidebar.number_input("Number of iterations:", value=1, min_value=1, max_value=10, step=1)
 
 # if pick a custom BoW, then write a temporary file to pull that in
-if bow == 'Custom (fill in below)':
+if bow == 'Custom Keywords (fill in below)':
     # write a file of keywords
     # bow_custom = 'Existential, Transcendent, Mystic'
     pd.DataFrame({'list': [x.strip() for x in bow_custom.split(',')]}).to_csv('temp_bow.tsv', header=False, index=False)
@@ -129,8 +133,11 @@ def get_key(val):
             return key
 
 if rec_button:
-    label = predictor.predict(context)
-    source = bow
-    chapter = get_key(label)
+    top_labels = predictor.predict_top_k(context, top_k_n=5)
+    source_tradition = [bow]
+    top_labels_text = [get_key(lab) for lab in top_labels]
 
-    print(f"Recommenation: source: {source}, label: {label}, chapter: {chapter}")
+    match = recommender.match([context], source_tradition, top_labels_text)
+
+    output_text_location.markdown(match)
+

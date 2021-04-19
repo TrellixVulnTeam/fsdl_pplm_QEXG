@@ -45,7 +45,30 @@ class Predictor():
 
         print(f"Best prediction: {label}: {max_value}")
         # to get top_n
-        # top_k_n = 5
-        # top_k = np.array([x.argsort()[-top_k_n:][::-1] for x in log_probs])
-
+        top_k_n = 5
+        top_k = np.array([x.argsort()[-top_k_n:][::-1] for x in log_probs]).flatten()
+        top_k_labels = [self.classes[x] for x in list(top_k)]
         return label
+
+
+    # predict method from run_pplm_discrim_train.py
+    def predict_top_k(self, input_sentence, top_k_n=5):
+        input_t = self.model.tokenizer.encode(input_sentence)
+        input_t = torch.tensor([input_t], dtype=torch.long, device=self.device)
+
+        log_probs = self.model(input_t).data.cpu().numpy()
+        log_probs_list = log_probs.flatten().tolist()
+        probs_list = [math.exp(log_prob) for log_prob in log_probs_list]
+        print("Input sentence:", input_sentence)
+        print("Predictions:", ", ".join(
+            "{}: {:.4f}".format(c, prob) for c, prob in
+            zip(self.classes, probs_list)
+        ))
+
+        # to get top_n
+        top_k = np.array([x.argsort()[-top_k_n:][::-1] for x in log_probs]).flatten()
+        top_k_labels = [self.classes[x] for x in list(top_k)]
+
+        print(f"Best predictions: {top_k_labels}")
+
+        return top_k_labels
