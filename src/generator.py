@@ -30,7 +30,7 @@ class Generator():
             meta_path,
             pretrained_model="gpt2-medium",
             seed=0,
-            no_cuda=False
+            no_cuda=True
         ):
 
         torch.manual_seed(seed)
@@ -38,6 +38,7 @@ class Generator():
 
         # set the device
         self.device = "cuda" if torch.cuda.is_available() and not no_cuda else "cpu"
+        # self.device = 'cpu'
 
         self.weights_path = weights_path
         self.meta_path = meta_path

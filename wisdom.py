@@ -77,12 +77,15 @@ bow = st.sidebar.selectbox('Choose Style', tuple(bow_fps.keys()))
 bow_custom = st.sidebar.text_input('Custom Keywords (comma separated)', 'Love, Peace, Joy, God')
 attr_model_label = st.sidebar.selectbox('Choose Topic', tuple(attr_labels.keys()))
 
-
 st.sidebar.markdown('## Generate Options')
 num_samples = st.sidebar.number_input("Number of samples:", value=1, min_value=1, max_value=10, step=1)
 length = st.sidebar.number_input("Length of output text:", value=25, min_value=10, max_value=100, step=1)
 stepsize = st.sidebar.number_input("Strength of conditioning:", value=0.04, min_value=0.01, max_value=.2, step=.01)
 num_iterations = st.sidebar.number_input("Number of iterations:", value=1, min_value=1, max_value=10, step=1)
+
+st.sidebar.markdown('## Recommender Options')
+num_topics = st.sidebar.number_input("Number of topics to search:", value=1, min_value=1, max_value=10, step=1)
+
 
 # if pick a custom BoW, then write a temporary file to pull that in
 if bow == 'Custom Keywords (fill in below)':
@@ -106,7 +109,7 @@ rec_button = st.button('Recommend similar passages')
 
 st.markdown('\n')
 st.markdown('## Output:')
-output_text_location = st.markdown('<- computing ->')
+output_text_location = st.markdown('<- enter text and click button to begin ->')
 
 st.markdown('\n')
 
@@ -114,6 +117,8 @@ from utils import st_stdout
 
 
 if gen_button:
+    output_text_location.markdown('<- computing in progress ->')
+
     with st_stdout("code"):
         output_text = generator.generate(
             cond_text=context,
@@ -133,11 +138,15 @@ def get_key(val):
             return key
 
 if rec_button:
-    top_labels = predictor.predict_top_k(context, top_k_n=5)
-    source_tradition = [bow]
-    top_labels_text = [get_key(lab) for lab in top_labels]
+    output_text_location.markdown('<- computing in progress ->')
 
-    match = recommender.match([context], source_tradition, top_labels_text)
-
-    output_text_location.markdown(match)
+    if bow == 'Custom Keywords (fill in below)':
+        output_text_location.markdown("Currently you need to select an existing "
+                                      "Keyword list in the dropdown instead of the Custom Keywords")
+    else:
+        top_labels = predictor.predict_top_k(context, top_k_n=num_topics)
+        source_tradition = [bow]
+        top_labels_text = [get_key(lab) for lab in top_labels]
+        match = recommender.match([context], source_tradition, top_labels_text)
+        output_text_location.markdown(match)
 

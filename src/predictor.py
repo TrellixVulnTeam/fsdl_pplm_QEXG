@@ -12,11 +12,17 @@ from PPLM.run_pplm_discrim_train import load_discriminator
 
 class Predictor():
 
-    def __init__(self, weights_path, meta_path):
+    def __init__(self,
+                 weights_path,
+                 meta_path,
+                 no_cuda=True
+                 ):
+
         self.weights_path = weights_path
         self.meta_path = meta_path
         self.load_model()
-        self.device = 'cpu'
+        self.device = "cuda" if torch.cuda.is_available() and not no_cuda else "cpu"
+        # self.device = 'cpu'
 
     def load_model(self):
         with open(self.meta_path, 'r', encoding="utf8") as f:

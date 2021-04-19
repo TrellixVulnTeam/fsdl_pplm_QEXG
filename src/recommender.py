@@ -5,16 +5,19 @@ https://towardsdatascience.com/semantic-similarity-using-transformers-8f3cb5bf66
 from sentence_transformers import SentenceTransformer, util
 import sqlite3
 import pandas as pd
+import torch
 
 class Recommender():
 
     def __init__(
             self,
             db_path,
-            pretrained_model='stsb-roberta-large'
+            pretrained_model='stsb-roberta-large',
+            no_cuda=True
     ):
 
-        self.device = 'cpu'
+        self.device = "cuda" if torch.cuda.is_available() and not no_cuda else "cpu"
+        # self.device = 'cpu'
         self.db_path = db_path
         self.pretrained_model = pretrained_model
 
@@ -29,7 +32,7 @@ class Recommender():
         """
 
         print(f"SentenceTransformer for model {self.pretrained_model}")
-        self.model = SentenceTransformer(self.pretrained_model)
+        self.model = SentenceTransformer(self.pretrained_model, device=self.device)
 
     def load_db(self):
         self.conn = sqlite3.connect(self.db_path)
