@@ -117,7 +117,7 @@ def run_all(data_dir, resource_dir):
     #########################################
 
     # get a list of all the files
-    files = [f for f in os.listdir(f'{resource_dir}/wc_extract') if re.match(r'^\w\w-\d\d-\d\d.htm$', f)]
+    files = [f for f in os.listdir(f'{data_dir}/wc_extract') if re.match(r'^\w\w-\d\d-\d\d.htm$', f)]
 
     # file_name = files[19]  chapter
     # file_name = files[18]
@@ -136,7 +136,7 @@ def run_all(data_dir, resource_dir):
 
         # print(f"\tSection number: {section_number}")
 
-        file_path = f'{resource_dir}/wc_extract/{file_name}'
+        file_path = f'{data_dir}/wc_extract/{file_name}'
 
         with open(file_path, 'r') as file:
             data = file.read()

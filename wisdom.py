@@ -16,15 +16,15 @@ from src.recommender import Recommender
 
 bow_fps = {
     'Custom Keywords (fill in below)': 'temp_bow.tsv',
-    'Buddhism': 'model/bow_buddhism.tsv',
-    'Hinduism': 'model/bow_hinduism.tsv',
-    'Christianity': 'model/bow_christianity.tsv',
-    'Judaism': 'model/bow_judaism.tsv',
-    'Confucianism': 'model/bow_confucianism.tsv',
-    'Sikhism': 'model/bow_sikhism.tsv',
-    'Taoism': 'model/bow_taoism.tsv',
-    'Jainism': 'model/bow_jainism.tsv',
-    'African Traditional Religions': 'model/bow_african_traditional_religions.tsv'
+    'Buddhism': 'data/bow_buddhism.tsv',
+    'Hinduism': 'data/bow_hinduism.tsv',
+    'Christianity': 'data/bow_christianity.tsv',
+    'Judaism': 'data/bow_judaism.tsv',
+    'Confucianism': 'data/bow_confucianism.tsv',
+    'Sikhism': 'data/bow_sikhism.tsv',
+    'Taoism': 'data/bow_taoism.tsv',
+    'Jainism': 'data/bow_jainism.tsv',
+    'African Traditional Religions': 'data/bow_african_traditional_religions.tsv'
 }
 
 attr_labels = {
@@ -51,9 +51,9 @@ attr_labels = {
     "Wisdom": "wisdom",
     "Worship": "worship"}
 
-weights_path = 'model/weights/best_loss.pt'
-meta_path = 'model/weights/generic_classifier_head_meta.json'
-db_path = 'model/ws.db'
+weights_path = 'data/weights/best_loss.pt'
+meta_path = 'data/weights/generic_classifier_head_meta.json'
+db_path = 'data/ws.db'
 
 
 @st.cache(allow_output_mutation=True, suppress_st_warning=True)
