@@ -74,7 +74,7 @@ print(f"Gen: {generator}")
 
 st.sidebar.markdown('## Configure Style and Content')
 bow = st.sidebar.selectbox('Choose Style', tuple(bow_fps.keys()))
-bow_custom = st.sidebar.text_input('Custom Keywords (comma separated)', 'Love, Peace, Joy, God')
+bow_custom = st.sidebar.text_input('Custom Keywords (comma separated)', 'Love, Compassion, Suffering, Impermanence')
 attr_model_label = st.sidebar.selectbox('Choose Topic', tuple(attr_labels.keys()))
 
 st.sidebar.markdown('## Generate Options')
