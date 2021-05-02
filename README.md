@@ -65,7 +65,7 @@ tuning was conducted to improve the accuracy, where increasing the learning rate
 
 The discriminator model can be trained by running the following command:
 ```bash
-   !python src/train_attribute_model.py --data_dir '/content/drive/MyDrive/Colab Notebooks/FSDL/data' --epochs 50 --learning_rate 0.001 
+   python src/train_attribute_model.py --data_dir '/content/drive/MyDrive/Colab Notebooks/FSDL/data' --epochs 50 --learning_rate 0.001 
 ```
 
 
